@@ -1,2 +1,3 @@
-# ISTE612_Project
-Term project for ISTE 612.
+# ISTE 612 - Term Project
+
+Term project repository for ISTE 612.

@@ -1,7 +1,7 @@
 ---
 # -- AGENDA -------------------------------------------
 title: "Agenda"
-date: "\\today"
+date: "June 17th, 2021"
 author: [Ian, Ben, Daniel]
 ---
 

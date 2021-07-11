@@ -4,10 +4,10 @@
 #
 # Initializes utils sub-package.
 """
+from typing import Any, Dict, Callable
 
-from typing import Any, FunctionType
-
-def logged(callback: FunctionType) -> FunctionType:
+def logged(callback: Callable[[[Any], Callable[[str], None], Dict[str, Any]], None])\
+    -> Callable[[str, Callable[[str], None], [Any], Dict[str, Any]], Any] :
     """Decorate a callback function to print a message prior to execution.
 
     :param callback: Callback function to execute
@@ -15,7 +15,7 @@ def logged(callback: FunctionType) -> FunctionType:
     :return: Return wrapped callback.
     :rtype: FunctionType
     """
-    def wrapped(message: str = None, logger: FunctionType = None, *args, **kwargs) -> Any:
+    def wrapped(message: str = None, logger: Callable[[str], None] = None, *args: Any, **kwargs: Any) -> Any:
         """Print message prior to executing passed function.
 
         :param message: Message to print, defaults to None

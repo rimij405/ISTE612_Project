@@ -6,10 +6,8 @@
 """
 
 import os
-import pathlib
 import sys, json, csv
 import itertools
-import scrapy
 
 from types import FunctionType
 from collections import namedtuple
@@ -19,7 +17,7 @@ from tqdm import tqdm
 from iste.scraper import constants
 from iste.scraper.arguments import argparser
 
-from iste.utils.verbose import logger, levels
+from iste.utils import verbose, filenames
 from iste.utils.duplicates import deduplicate
 
 ###########################
@@ -34,9 +32,9 @@ cargs = argparser.parse_args()
 ###########################
 
 # Setup the loggers.
-log   = logger(cargs, threshold=levels.NONE)
-logv  = logger(cargs, threshold=levels.LOW)
-logvv = logger(cargs, threshold=levels.HIGH)
+log   = verbose.logger(cargs, threshold=verbose.levels.NONE)
+logv  = verbose.logger(cargs, threshold=verbose.levels.LOW)
+logvv = verbose.logger(cargs, threshold=verbose.levels.HIGH)
 
 # Verify to user the verbose level.
 logv(f"Executing {constants.program} in verbose mode (level={cargs.verbose})...")
@@ -54,48 +52,42 @@ if cargs.dry:
 ###########################
 
 cargs.states = deduplicate(cargs.states, message="Removing duplicate states...")
-if not cargs.states:
-    logv(f'No states provided.')
-    
 cargs.formats = deduplicate(cargs.formats, message="Removing duplicate formats...")
-if not cargs.formats:
-    logv(f'No formats provided.')
-    
 cargs.filenames = deduplicate(cargs.filenames, message="Removing duplicate output basenames...")
-if not cargs.filenames:
-    logv(f'No file basenames provided.')
-
 cargs.files = deduplicate(cargs.files, message="Removing duplicate output files...")
-if not cargs.files:
-    logv(f'No output files provided.')
 
 ###########################
 # GENERATE FILENAMES
 ###########################
 
+if cargs.filenames:
+    logvv('Generating filenames from console arguments:')
+    cargs.filenames = filenames.generate_filenames(
+                        labels=cargs.filenames,
+                        formats=cargs.formats,
+                        prefix=cargs.prefix,
+                        tags=cargs.states,
+                        sep=cargs.sep,
+                        logger=logvv
+                    )
 
+if not cargs.filenames:
+    logv(f'No file basenames provided.')
 
+if not cargs.formats:
+    logv(f'No formats provided.')
 
-
-
-
-# Create product of all lists.
-logv("Generating on-the-fly list of files to output...")
-generated_filenames = list(itertools.product( cargs.filenames, cargs.states, cargs.formats))
-
-logvv("Mapping generated filenames to Dict[str, str]...")
-generated_filenames = [ { "basename": name, 
-                          "state": s, 
-                          "suffix": ext } 
-                    for (name, s, ext) in generated_filenames ]
-
-if cargs.verbose > 1:
-    for x in generated_filenames:
-        logvv(f'{cargs.prefix}{cargs.sep}{cargs.states}{cargs.sep}{x.base}{cargs.sep}{x.suffix}')
+if not cargs.states:
+    logv(f'No states provided.')
+    
+if not cargs.files:
+    logv(f'No output files provided.')
 
 ###########################
 # FILE WRITERS
 ###########################
+""" 
+
 
 def content_writer(writer_func: FunctionType) -> FunctionType:
     def wrapper(file: IO, content: Any, params: Dict[str, str] = {}, *args: List[Any], **kwargs: Dict[str, Any]) -> None:
@@ -129,35 +121,35 @@ def content_writer(writer_func: FunctionType) -> FunctionType:
 
 @content_writer
 def to_json(file: IO, content: List[Any], **kwargs: Dict[str, Any]) -> None:
-    """Write JSON-formatted content out to provided file.
+    ""Write JSON-formatted content out to provided file.
 
     :param file: File-like object to write JSON to.
     :type file: IO
     :param content: Content to be serialied into JSON.
     :type content: Any
-    """    
+    ""    
     json.dump(content, file, **kwargs)
         
 def print_json(content: Any, **kwargs: Any) -> None:
-    """Write JSON-formatted stream to standard output.
+    ""Write JSON-formatted stream to standard output.
 
     :param content: Object to serialize.
     :type content: Any
     :param kwargs: Keyword arguments accepted by json.dump()
-    """
+    ""
     logvv("Exporting results to the standard output.")
     to_json(sys.stdout, content, **kwargs)
     print("")
 
 @content_writer
 def to_csv(file: IO, content: List[Dict[Any, Any]], **kwargs: Dict[str, Any]) -> None:
-    """Write CSV-formatted content out to provided file.
+    ""Write CSV-formatted content out to provided file.
 
     :param file: File-like object to write CSV to.
     :type file: IO
     :param content: Content with a set of fields and rows to serialize into CSV.
     :type content: Union[Dict[Any, Any], List[Dict[Any, Any]]]
-    """
+    ""
     # If content is a single dictionary, assign to single-element list.
     if isinstance(content, dict):
         content = [ content ]
@@ -185,34 +177,34 @@ def to_csv(file: IO, content: List[Dict[Any, Any]], **kwargs: Dict[str, Any]) ->
             logvv(f"Wrote row {n_rows}: {row}")
                 
 def print_csv(content: Dict[Any, Any], **kwargs: Any) -> None:
-    """Write CSV-formatted stream to standard output.
+    ""Write CSV-formatted stream to standard output.
 
     :param content: Object to serialize.
     :type content: Any
     :param kwargs: Keyword arguments accepted by csvwriter()
-    """
+    ""
     logvv("Exporting results to the standard output.")
     to_csv(sys.stdout, content, **kwargs)
     print("")
                 
 @content_writer
 def to_tsv(file: IO, content: List[Dict[Any, Any]], **kwargs: Dict[str, Any]) -> None:
-    """Write TSV-formatted content out to provided file.
+    ""Write TSV-formatted content out to provided file.
 
     :param file: File-like object to write TSV to.
     :type file: IO
     :param content: Content with a set of fields and rows to serialize into TSV.
     :type content: Union[Dict[Any, Any], List[Dict[Any, Any]]]
-    """
+    ""
     to_csv(file, content, delimiter='\t', **kwargs)
     
 def print_tsv(content: Dict[Any, Any], **kwargs: Any) -> None:
-    """Write TSV-formatted stream to standard output.
+    ""Write TSV-formatted stream to standard output.
 
     :param content: Object to serialize.
     :type content: Any
     :param kwargs: Keyword arguments accepted by csvwriter()
-    """
+    ""
     logvv("Exporting results to the standard output.")
     to_tsv(sys.stdout, content, **kwargs)
     print("")
@@ -324,4 +316,4 @@ if cargs.testing:
 
 ###########################
 # OUTPUT DATA TO FILE
-###########################
+########################### """

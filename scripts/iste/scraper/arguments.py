@@ -83,22 +83,22 @@ prefix_options.add_argument('-pre', '--prefix', metavar='PREFIX', dest="prefix",
 
 # --format argument. Used to specify JSON or CSV output.
 output_options.add_argument('-f', '--format', metavar='FORMAT', dest="formats",
-                    action="append", choices=['csv', 'tsv', 'json', 'stdout'], default=None,
+                    action="append", choices=['.csv', '.tsv', '.json', 'stdout'], default=None,
                     help="Save results in specified file format.")
 
 # --json argument. Used to specify JSON output.
 output_options.add_argument('-J', '--json', dest="formats",
-                    action="append_const", const="json",
+                    action="append_const", const=".json",
                     help="Save results in *.json file.")
 
 # --csv argument. Used to specify CSV output.
 output_options.add_argument('-C', '--csv', dest="formats",
-                    action="append_const", const="csv",
+                    action="append_const", const=".csv",
                     help="Save results in *.csv file.")
 
 # --tsv argument. Used to specify TSV output.
 output_options.add_argument('-T', '--tsv', dest="formats",
-                    action="append_const", const="tsv",
+                    action="append_const", const=".tsv",
                     help="Save results in *.tsv file.")
 
 # --json argument. Used to specify JSON output.

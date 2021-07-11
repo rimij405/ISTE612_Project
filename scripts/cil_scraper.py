@@ -5,8 +5,8 @@
 # Scrapes https://www.ilru.org/projects/cil-net/cil-center-and-association-directory-results/<state> and outputs results in *.csv or *.json format.
 """
 
-from iste.scraper import constants
-from iste.scraper.arguments import argparser
+from iste.drse import constants
+from iste.drse.arguments import argparser
 
 from iste.utils import verbose, filenames
 from iste.utils.duplicates import deduplicate

@@ -1,10 +1,10 @@
 """
-# iste.scraper.__init__.py
+# iste.drse.__init__.py
 # @author Ian Effendi
 #
 # Initializes scraper sub-package.
 """
-from .constants import freeze
+from utils.constants import freeze
 
 import attr
 

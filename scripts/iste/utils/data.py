@@ -40,12 +40,6 @@ class CallableDict(object):
         return self.callbacks.get(key, default)
 
 ###########################
-# DATA STRINGIFIERS
-###########################
-
-stringifiers = CallableDict()
-
-###########################
 # DATA LOADERS
 ###########################
 

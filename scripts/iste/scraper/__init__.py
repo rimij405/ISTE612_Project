@@ -4,7 +4,7 @@
 #
 # Initializes scraper sub-package.
 """
-from constants import freeze
+from .constants import freeze
 
 import attr
 

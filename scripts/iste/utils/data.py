@@ -48,12 +48,11 @@ writers = CallableDict()
 
 @loaders.callback
 def load_json():
-    
+
 
 ###########################
 # DATA WRITERS
 ###########################
-
 
 ###########################
 # UTILITY FUNCTIONS

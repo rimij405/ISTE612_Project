@@ -22,7 +22,7 @@ class Filename(object):
     prefix: str = attr.ib(default="")
     suffix: str = attr.ib(default=".txt")
     label: str = attr.ib(default="<label>")
-    tags: List[str] = attr.ib(default=[], factory=list, repr=lambda _tags: f'tags={",".join(*_tags)}')
+    tags: List[str] = attr.ib(default=attr.Factory(list), repr=lambda _tags: f'tags={",".join(*_tags)}')
     
     @classmethod
     def from_dict(cls: type, attrs: Dict[str, Union[str, List[str]]]) -> object:
@@ -41,8 +41,7 @@ class Filename(object):
         :return: Created filename.
         :rtype: str
         """
-        _tags = [ f'<{tag}>' for tag in self.tags ] if self.tags else []
-        return self.sep.join([ self.prefix, *_tags, self.label ]) + self.suffix
+        return self.sep.join([ self.prefix, *self.tags, self.label ]) + self.suffix
 
 # Defaults object.
 defaults = Filename()
@@ -63,12 +62,17 @@ template = Filename(
 def make_qualified_filename(attrs: Dict[str, Any]) -> Filename:
     return Filename.from_dict(attrs)
 
-def enumerate_options(options: List[Tuple[str, str, List[str], str]]) -> List[Dict[str, Union[str, List[str]]]]:
-    return [ { "prefix": prefix, 
-              "label": label, 
-              "tags": tags, 
-              "suffix": suffix } 
-            for (prefix, label, tags, suffix) in options ]
+def enumerate_options(options: List[Tuple[str, str, str, List[str]]], sep: str = ".") -> List[Dict[str, Union[str, List[str]]]]:
+        
+    # inner function
+    def select_option(prefix: str, label: str, suffix: str, *tags: str) -> Dict[str, Union[str, List[str]]]:
+        return { "prefix": prefix,
+                "label": label,
+                "suffix": suffix,
+                "tags": tags,
+                "sep": sep }
+        
+    return [ select_option(*option) for option in options ]
 
 def generate_filenames(labels: List[str], 
                        formats: List[str], 
@@ -76,28 +80,31 @@ def generate_filenames(labels: List[str],
                        prefix: str = None, 
                        sep: str = "", 
                        logger: Callable[[str], None] = None) -> List[Filename]:
-    
-    # Ensure is list.
+    log = logger if logger else lambda _ : 0
     if tags and isinstance(tags, str):
-        tags = [ tags ]
+        tags = [ tags ]    
     
     # Ensure non-null.
     labels = labels if labels else [ defaults.label ]
-    formats = formats if formats else [ defaults.suffix ]
-    tags = tags if tags else [ defaults.tags ]
-    prefix = prefix if prefix else defaults.prefix
+    log(f'\tLabels: {labels}')
+    formats = [ f'.{ext}' for ext in formats ] if formats else [ defaults.suffix ]
+    log(f'\tFormats: {formats}')
+    tags = [ tags ] if tags else [ defaults.tags ]
+    log(f'\tTags: {tags}')
+    prefix = [ prefix ] if prefix else [ defaults.prefix ]
+    log(f'\tprefix: {prefix}')
     sep = sep if sep else defaults.sep
-    log = logger if logger else lambda _ : 0
+    log(f'\tsep: {sep}')
     
     # Example: tags = [ ['NY', 'new york'], ['OH', 'ohio'] ] or tags = [ 'NY', 'OH' ]
         
     # Calculate filename permutations in product space
-    log("\tCalculating filename permutations from components provided.")
-    options: List[Tuple[str, str, List[str], str]] = list(product(*[ prefix, *tags, labels, formats ]))
+    log("\tCalculating filename permutations from components provided:")
+    options: List[Tuple[str, str, str, List[str]]] = list(product(*[ prefix, labels, formats, *tags ]))
     
     # Enumerate options.
     log("\tEnumerating filenames from collection of provided options.")
-    filenames: List[Filename] = [ Filename.from_dict(attrs) for attrs in enumerate_options(options) ]
+    filenames: List[Filename] = [ Filename.from_dict(attrs) for attrs in enumerate_options(options, sep=sep) ]
 
     # Print generated filenames.
     log(f'\tGenerated {len(filenames)} filename(s):')

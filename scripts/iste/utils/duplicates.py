@@ -5,12 +5,12 @@
 # Deduplicate an arbitrary amount of elements from a List-like.
 """
 
-from typing import Any, List, Set, FunctionType
+from typing import Any, List, Set, Callable
 
 from . import logged
 
 @logged
-def deduplicate(array: List[Any], logger: FunctionType = None) -> Set:
+def deduplicate(array: List[Any], logger: Callable = None) -> Set:
     """Deduplicate arbitrary amount of items in a list.
         
     :param array: Array to deduplicate.

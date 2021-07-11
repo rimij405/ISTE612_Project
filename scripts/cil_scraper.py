@@ -1,5 +1,5 @@
 """
-# cil_finder.py
+# cil_scraper.py
 # @author Ian Effendi
 #
 # Scrapes https://www.ilru.org/projects/cil-net/cil-center-and-association-directory-results/<state> and outputs results in *.csv or *.json format.
@@ -25,7 +25,7 @@ from iste.utils.duplicates import deduplicate
 ###########################
 
 # Load in the program argument parser.
-cargs = argparser.parse_args()
+cargs, unknown = argparser.parse_known_args()
 
 ###########################
 # PREPARE LOGGER
@@ -39,22 +39,43 @@ logvv = verbose.logger(cargs, threshold=verbose.levels.HIGH)
 # Verify to user the verbose level.
 logv(f"Executing {constants.program} in verbose mode (level={cargs.verbose})...")
 
+def log_filename_args():
+    logvv(f'{cargs.sep} (separator)')
+    logvv(f'{cargs.prefix} (namespace)')
+    logvv(f'{cargs.states} (tags)')
+    logvv(f'{cargs.formats} (formats)')
+    logvv(f'{cargs.filenames} (filenames)')
+    logvv(f'{cargs.files} (files)')
+
 ###########################
 # CONFIRM DRY-NESS
 ###########################
 
 # If verbose and dry:
 if cargs.dry:
-    logv(f'--dry is {cargs.dry}. Output will not be saved.')
+    logv(f'--dry is {cargs.dry}. Executing in dry mode...')
+
+###########################
+# COLLECTIVIZE
+###########################
+
+# Set defaults.
+cargs.prefix = cargs.prefix if cargs.prefix else ""
+cargs.formats = cargs.formats if cargs.formats else []
+cargs.filenames = cargs.filenames if cargs.filenames else []
+cargs.files = cargs.files if cargs.files else []
+cargs.sep = cargs.sep if cargs.sep else ""
+log_filename_args()
 
 ###########################
 # DEDUPLICATE INPUT
 ###########################
 
-cargs.states = deduplicate(cargs.states, message="Removing duplicate states...")
-cargs.formats = deduplicate(cargs.formats, message="Removing duplicate formats...")
-cargs.filenames = deduplicate(cargs.filenames, message="Removing duplicate output basenames...")
-cargs.files = deduplicate(cargs.files, message="Removing duplicate output files...")
+cargs.states = deduplicate(cargs.states, message="Removing duplicate states...", logger=logvv)
+cargs.formats = deduplicate(cargs.formats, message="Removing duplicate formats...", logger=logvv)
+cargs.filenames = deduplicate(cargs.filenames, message="Removing duplicate output basenames...", logger=logvv)
+cargs.files = deduplicate(cargs.files, message="Removing duplicate output files...", logger=logvv)
+log_filename_args()
 
 ###########################
 # GENERATE FILENAMES

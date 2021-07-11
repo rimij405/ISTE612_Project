@@ -4,20 +4,19 @@
 #
 # Prepares verbose printer decorator.
 """
-
-from typing import Any, List, Dict, FunctionType
-
-from utils.constants import to_namedtuple
+from typing import Any, List, Dict, Callable
 from argparse import Namespace
 
-# Export verbosity levels.
-levels = to_namedtuple('Levels', {
-    "NONE": 0,
-    "LOW": 1,
-    "HIGH": 2,
-})
+import attr
 
-def logger(cargs: Namespace, threshold: int = 0) -> FunctionType:
+# Export verbosity levels.
+levels = attr.make_class('Levels', {
+                            "NONE": attr.ib(default=0),
+                            "LOW":  attr.ib(default=1),
+                            "HIGH": attr.ib(default=2)
+                        })()
+
+def logger(cargs: Namespace, threshold: int = 0) -> Callable:
     """Decorator factory for creating verbose threshold printers."""
     if threshold is None:
         threshold = 0

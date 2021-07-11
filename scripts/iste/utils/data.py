@@ -17,7 +17,7 @@ class CallableDict(object):
     """CallableDict contains a lookup table and decorator function for registering functions."""
     callbacks: Dict[str, Callable[..., Any]] = attr.ib(factory=dict)
     
-    def callback(self, f: Callable[..., Any]) -> Callable[..., Any]:
+    def register(self, f: Callable[..., Any]) -> Callable[..., Any]:
         """Decorator function used to associate a function with this instance's callable dictionary.
 
         :param f: Function to retrieve or store.
@@ -25,7 +25,7 @@ class CallableDict(object):
         :return: Return callback function.
         :rtype: Callable[..., Any]
         """
-        return self.callbacks.setdefault()
+        return self.callbacks.setdefault(f.__name__, f)
         
     def get(self, key: str, default: Callable[..., Any] = lambda _: 'Invalid function key.'):
         """Get function from the dictionary of callbacks by its key (function name).
@@ -39,25 +39,30 @@ class CallableDict(object):
         """
         return self.callbacks.get(key, default)
 
-loaders = CallableDict()
-writers = CallableDict()
+###########################
+# DATA STRINGIFIERS
+###########################
+
+stringifiers = CallableDict()
 
 ###########################
 # DATA LOADERS
 ###########################
 
-@loaders.callback
+loaders = CallableDict()
+
+@loaders.register
 def from_json(file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, **kwargs: Any) -> Any:
     data = json.load(file, **kwargs)
     return transformer(data) if transformer and callable(transformer) else data
 
-@loaders.callback
+@loaders.register
 def from_csv(file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, **kwargs: Any) -> Any:
     reader = csv.DictReader(file, **kwargs)
     data = [ row for row in reader ]
     return transformer(data) if transformer and callable(transformer) else data
 
-@loaders.callback
+@loaders.register
 def from_tsv(file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, **kwargs: Any) -> Any:
     reader = csv.DictReader(file, **kwargs, dialect=csv.excel_tab)
     data = [ row for row in reader ]
@@ -67,58 +72,35 @@ def from_tsv(file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = No
 # DATA WRITERS
 ###########################
 
-@writers.callback
-def to_json(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, **kwargs: Any) -> None:
-    payload = transformer(data) if transformer and callable(transformer) else data
-    json.dump(payload, file, **kwargs)
+writers = CallableDict()
+
+@writers.register
+def to_json(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = lambda data: data, **kwargs: Any) -> None:
+    json.dump(transformer(data), file, **kwargs)
     
-@writers.callback
-def to_csv(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, fieldnames: List[str] = None, include_header: bool = True, **kwargs: Any) -> None:
+@writers.register
+def to_csv(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = lambda data: data, fieldnames: List[str] = None, include_header: bool = True, **kwargs: Any) -> None:
     writer = csv.DictWriter(file, fieldnames=fieldnames, **kwargs)
     if include_header:
         writer.writeheader()
-    payload = transformer(data) if transformer and callable(transformer) else data
-    writer.writerows(payload)
+    writer.writerows(transformer(data))
 
-@writers.callback
-def to_tsv(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = None, fieldnames: List[str] = None, include_header: bool = True, **kwargs: Any) -> None:
+@writers.register
+def to_tsv(data: Any, file: Union[TextIO, BinaryIO], transformer: Callable[..., Any] = lambda data: data, fieldnames: List[str] = None, include_header: bool = True, **kwargs: Any) -> None:
     writer = csv.DictWriter(file, dialect=csv.excel_tab, fieldnames=fieldnames, **kwargs)
     if include_header:
         writer.writeheader()
-    payload = transformer(data) if transformer and callable(transformer) else data
-    writer.writerows(payload)
+    writer.writerows(transformer(data))
     
 ###########################
 # UTILITY FUNCTIONS
 ###########################
 
-def load(file: Union[TextIO, BinaryIO], format: str, transformer: Callable[..., Any] = None, **kwargs: Any) -> Any:
+def load(file: Union[TextIO, BinaryIO], format: str, transformer: Callable[..., Any] = lambda data: data, **kwargs: Any) -> Any:
     loader = loaders.get(format)
     return loader(file, transformer=transformer, **kwargs)
 
-def dump():
+def dump(data: Any, file: Union[TextIO, BinaryIO], format: str, transformer: Callable[..., Any] = lambda data: data, **kwargs: Any) -> None:
+    writer = writers.get(format)
+    return writer(data, file, transformer=transformer, **kwargs)
 
-
-# def to_json(data: Any, file: Optional[Union[TextIO, BinaryIO]] = sys.stdout, converter: Optional[Callable[..., Any]] = lambda value : value, **kwargs: Optional[Any]) -> None:
-    """Dump contents into a JSON-format compatible stream.
-
-    :param data: Data to dump.
-    :type data: Any
-    :param file: Stream IO to dump contents into, defaults to sys.stdout.
-    :type file: Union[TextIO, BinaryIO]
-    :param converter: Conversion function that prepares data for dumping, defaults to lambda value: value
-    :type converter: Callable[..., Any], optional
-    """
-    # return json.dump(converter(data), file, **kwargs)
-
-# def dumps(data: Any, converter: Optional[Callable[..., Any]] = lambda value : value, **kwargs: Optional[Any]) -> str:
-    """Stringify contents of data file into a JSON-formatted object.
-
-    :param data: Data to format.
-    :type data: Any
-    :param converter: Conversion function that prepares data for dumping, defaults to lambda value: value
-    :type converter: Optional[Callable[..., Any]], optional
-    :return: Returns stringified JSON content.
-    :rtype: str
-    """
-    # return json.dumps(converter(data), **kwargs)

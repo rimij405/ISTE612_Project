@@ -5,15 +5,6 @@
 # Scrapes https://www.ilru.org/projects/cil-net/cil-center-and-association-directory-results/<state> and outputs results in *.csv or *.json format.
 """
 
-import os
-import sys, json, csv
-import itertools
-
-from types import FunctionType
-from collections import namedtuple
-from typing import Any, List, Set, Dict, IO, TextIO, BinaryIO, Union, no_type_check
-from tqdm import tqdm
-
 from iste.scraper import constants
 from iste.scraper.arguments import argparser
 
@@ -93,7 +84,7 @@ if cargs.filenames:
                     )
 
 if not cargs.filenames:
-    logv(f'No file basenames provided.')
+    logv(f'No filename labels provided.')
 
 if not cargs.formats:
     logv(f'No formats provided.')
@@ -103,6 +94,7 @@ if not cargs.states:
     
 if not cargs.files:
     logv(f'No output files provided.')
+log_filename_args()
 
 ###########################
 # FILE WRITERS

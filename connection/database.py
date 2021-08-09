@@ -7,6 +7,15 @@ class Database:
     DATABASE = None
     
     @staticmethod
+    def make_options(hostname='', username='', password=None, port=0):
+        return {
+            "DB_HOST": hostname,
+            "DB_USER": username,
+            "DB_PASS": password,
+            "DB_PORT": port,
+        }
+    
+    @staticmethod
     def get_connection_string(options):
         hostname = urllib.parse.quote_plus(options['DB_HOST'])
         username = urllib.parse.quote_plus(options['DB_USER'])

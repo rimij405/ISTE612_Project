@@ -12,14 +12,14 @@ from pymongo import MongoClient
 from dotenv import dotenv_values
 
 # Application related libraries.
-from config import Config
+from config import Configuration
 from database import Database
 
 # Load the environment variables.
-Config.initialize('./../.env')
+env = Configuration('./../')
 
 # Initialize the database and make connection.
-Database.initialize(Config.ENV)
+Database.initialize(env)
 Database.use('region')
 results = Database.find('zipcodes', {})
 

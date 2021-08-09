@@ -1,0 +1,211 @@
+# settings.toml
+# Author: Ian Effendi
+#
+# Contains settings for managing ingestion of database sources.
+
+# GLOBAL SETTINGS ----------------------------------------
+
+# Log verbose messages?
+verbose = true
+dryrun = false
+
+# Working directory files are relative to.
+dirpath = "./"
+datadir = "data/"
+
+# Application name.
+[app]
+name = "disability_resource_search_engine"
+version = "v0.1.1"
+
+[geocoder]
+min_delay_seconds = 2
+
+# MIMETYPE CONFIGURATION ---------------------------------
+
+[[mimetypes.text]]
+extension="txt"
+mimetype = "text/plain"
+
+[[mimetypes.csv]]
+extension="csv"
+mimetype = "text/csv"
+
+[[mimetypes.tsv]]
+extension="tsv"
+mimetype = "text/tsv"
+
+[[mimetypes.excel]]
+extension = "xlsx"
+mimetype  = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+[[mimetypes.excel]]
+extension = "xlsb"
+mimetype = "application/vnd.ms-excel.sheet.binary.macroEnabled.12"
+
+[[mimetypes.excel]]
+extension = "xls"
+mimetype = "application/vnd.ms-excel"
+
+[[mimetypes.excel]]
+extension = "xlsm"
+mimetype = "application/vnd.ms-excel.sheet.macroEnabled.12"
+
+[[mimetypes.json]]
+extension = "json"
+mimetype = "application/json"
+
+[[mimetypes.html]]
+extension = "html"
+mimetype = "application/html"
+
+# DATABASE CONFIGURATION ---------------------------------
+# --- GLOSSARY DATABASE ----------------------------------
+
+[[db.databases]]
+name = "glossary"
+
+    # --- GLOSSARY::disability_category-------------------
+
+    [[db.databases.collections]]
+    name    = "disability_category"
+    schema  = [
+        { field = "_id", index = true },
+        { field = "cat", index = true },
+        { field = "desc", index = false },
+    ]
+
+        [[db.databases.collections.sources]]
+        name = "edu.iste.disabilityresourcesearchengine.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="disability_category", fields=[] },
+        ]
+
+    # --- GLOSSARY::service_category----------------------
+
+    [[db.databases.collections]]
+    name = "service_category"
+    schema  = [
+        { field = "_id", index = true },
+        { field = "cat", index = true },
+        { field = "desc", index = false },
+    ]
+
+        [[db.databases.collections.sources]]
+        name = "edu.iste.disabilityresourcesearchengine.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="service_category", fields=[] },
+        ]
+
+# --- REGION DATABASE ----------------------------------
+
+[[db.databases]]
+name = "region"
+
+    # --- REGION::states--------------------------------
+
+    [[db.databases.collections]]
+    name = "states"
+    schema  = [
+        { field = "_id", index = true },
+        { field = "state", index = true },
+        { field = "abbr", index = false },
+        { field = "code", index = false },
+        { field = "pop", index = false },
+    ]
+
+        [[db.databases.collections.sources]]
+        name = "edu.iste.disabilityresourcesearchengine.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="states", fields=[] },
+        ]
+
+    [[db.databases.collections]]
+    name = "zipcodes"
+    schema  = [
+        { field = "_id", index = true },
+        { field = "zip", index = true },
+        { field = "city", index = false },
+        { field = "county", index = false },
+        { field = "pop", index = false },
+    ]
+
+        [[db.databases.collections.sources]]
+        name = "edu.iste.disabilityresourcesearchengine.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="zipcodes", fields=[] },
+        ]
+
+# --- PROVIDERS DATABASE ----------------------------------
+
+[[db.databases]]
+name = "providers"
+
+    [[db.databases.collections]]
+    name = "services"
+    schema  = [
+        { field = "_id", index = true },
+        { field = "facility", index = false },
+        { field = "keywords", index = false },
+        { field = "category.disability", index = false },
+        { field = "category.service", index = false },
+        { field = "info.phone", index = false },
+        { field = "info.fax", index = false },
+        { field = "info.website.url", index = false },
+        { field = "info.website.subdomain", index = false },
+        { field = "info.website.hostname", index = false },
+        { field = "info.website.domain", index = false },
+        { field = "info.addressee", index = false },
+        { field = "address.location", index = false },
+        { field = "address.street.line1", index = false },
+        { field = "address.street.line2", index = false },
+        { field = "address.coordinates.latitude", index = false },
+        { field = "address.coordinates.longitude", index = false },
+        { field = "address.city", index = false },
+        { field = "address.county", index = false },
+        { field = "address.state", index = false },
+        { field = "address.zipcode", index = false },
+    ]
+
+        [[db.databases.collections.sources]]
+        name = "gov.ca.serviceproviders.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="dss_service_providers", fields="A:N" },
+        ]
+
+        [[db.databases.collections.sources]]
+        name = "gov.ca.serviceproviders.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="dss_service_providers", fields="A:N" },
+        ]
+
+        [[db.databases.collections.sources]]
+        name = "gov.nys.serviceproviders.xlsx"
+        type = "excel"
+        worksheets = [
+            { name="ddso_service_providers", fields="A:V" },
+            { name="ddso_discharge_facilities", fields="A:F" },
+            { name="ofa_service_providers", fields="A:J" },
+        ]
+
+        [[db.databases.collections.sources]]
+        name = "org.handson.ohio.serviceproviders.json"
+        type = "json"
+
+        [[db.databases.collections.sources]]
+        name = "irlu-CA-results.html"
+        type = "html"
+
+        [[db.databases.collections.sources]]
+        name = "irlu-NY-results.html"
+        type = "html"
+
+        [[db.databases.collections.sources]]
+        name = "irlu-OH-results.html"
+        type = "html"

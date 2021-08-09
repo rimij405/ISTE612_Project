@@ -5,8 +5,9 @@
 # Excel
 *.~lock*
 
-# Environment.
+# Environment and DYNACONF files.
 *.env.*
+.secrets.*
 
 # Vagrant
 .vagrant/

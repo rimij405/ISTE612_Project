@@ -4,6 +4,9 @@ import urllib.parse
 import datetime
 import json
 
+# Import configuration settings.
+from ..config import Configuration, settings
+
 # Import data processing tools.
 import pandas as pd
 

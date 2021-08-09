@@ -24,6 +24,61 @@ Configuration settings are located in `*.toml` files and processed using `dynaco
 
 A `.secrets.toml` file is expected to contain database authentication settings. This is not included with the repository, but you can create a `.secrets.toml` file alongside `settings.toml` with the appropriate settings.
 
+`*.toml` files have the following format as described by the [TOML v1.0.0 specification](https://toml.io/en/):
+
+```toml
+# Comments are prepended with a '#' character.
+
+# Configuration is split into [section]s.
+
+[String]
+literal = 'unescaped\tline\tWYSIWYG'
+singleline = "this is a new line"
+multiline = """
+\b      - backspace         (U+0008)
+\t      - tab               (U+0009)
+\n      - linefeed          (U+000A)
+\f      - form feed         (U+000C)
+\r      - carriage return   (U+000D)
+\"      - quote             (U+0022)
+\u1234  - unicode           (U+1234)
+"""
+
+[Number]
+int1 = +5349221
+int2 = -5_3_49_221
+hex1 = 0xDEADBEEF
+oct1 = 0o01234567
+fp1  = +6.626e-34
+fp2  = 224_617.445_991_228
+sf1  = -inf # negative infinity
+sf2  = +inf # positive infinity
+sf3  = +nan # not a number
+
+[DateTime]
+ld1 = 1979-05-27  # Local Date
+lt1 = 07:32:00    # Local Time
+ldt1 = 1979-05-27T07:32:00   # Local Date-Time
+odt1 = 1979-05-27T07:32:00Z  # Offset Date-Time
+
+[Structures]
+array = [[1, 2], ["a", "b", "c"]]
+inlineTable = [
+    { x = 1, y = 2, z = 3 },
+    { x = 4, y = 5, z = 6 },
+    { x = 7, y = 8, z = 9 },
+]
+
+# Double-bracketed sections are called arrays and can be used multiple times.
+
+[[Array]]
+name = "Array 1"
+
+[[Array]]
+name = "Array 2"
+
+```
+
 ## MongoDB
 
 The scripts were written to ingest files into our MongoDB instance. We maintain a privately hosted MongoDB server running alongside a BI Connector middleware.
@@ -41,25 +96,23 @@ The repository's `data/` folder served as a media datalake - data is stored in a
 Different service provider files were created and scripts were written to extract similar features for the purposes of classification and ingestion to MongoDB.
 
 ```yaml
+_id: <ObjectId>
 facility: <str>
-info:
-  phone: [<XXX-XXX-XXXX>,...]
-  fax: [<XXX-XXX-XXXX>,...]
-  website: <subdomain.domain.com>
-  person: <entity>
 keywords: [<str>,...]
+category: 
+  disability: [<str>,...]
+  service: [<str>,...]
+info:
+  website: <subdomain.domain.com>
+  fax: <XXX-XXX-XXXX>
+  phone: <XXX-XXX-XXXX>
+  addressee: <entity>
 address:
   street:
-    line_1: <str>
-    line_2: <str>
+    line1: <str>
+    line2: <str>
   city: <city>
   county: <county>
   state: <state>
   zipcode: <zipcode>
-category: 
-  disability: [<str>,...]
-  service: [<str>,...]
-misc: 
-  content: [<str>,...]
-  <key>: <value>
 ```
